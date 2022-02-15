@@ -1,0 +1,208 @@
+<!-- Code from d3-graph-gallery.com -->
+<!DOCTYPE html>
+<meta charset="utf-8">
+<html>
+  <style>
+    .juzhong2 {
+        position: relative;
+        top: 0px;
+        left: 650px;
+        width: 700px;
+        font-size: 50px;
+        }
+    </style>
+  <style>
+
+    .button {
+      background-color: white;
+      color:black;
+      width:200px; 
+      border: 2px solid #1F618D; 
+      height: 100;
+      font-size: 20px;
+      padding: 14px 30px;
+      border-radius: 8px;
+      float: left;
+        }
+    
+    .button1 {
+      background-color: white;
+      color:black;
+      width:200px; 
+      border: 2px solid #1F618D; 
+      height: 100;
+      font-size: 20px;
+      padding: 14px 30px;
+      border-radius: 8px;
+      float: left;
+      transition-duration: 0.7s;
+    }
+    .button1:hover {
+      background-color: black;
+      color: white;
+      width:200px; 
+      border: 2px solid #1F618D; 
+      height: 100;
+      font-size: 20px;
+      padding: 14px 30px;
+      border-radius: 8px;
+      float: left;
+    }
+    </style>
+  <style>
+    body {
+      font-family: 'Open Sans', sans-serif;
+      font-size: 11px;
+      font-weight: 300;
+      fill: #242424;
+      text-align: center;
+      text-shadow: 0 1px 0 #fff, 1px 0 0 #fff, -1px 0 0 #fff, 0 -1px 0 #fff;
+      cursor: default;
+    }
+    
+    .legend {
+      font-family: 'Raleway', sans-serif;
+      fill: #333333;
+    }
+    
+    .tooltip {
+      fill: #333333;
+    }
+  </style>
+<body>
+<!-- Load d3.js -->
+<p class="juzhong2">机构根据投资偏好进行聚类</p>
+<script src="https://d3js.org/d3.v4.js"></script>
+<script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
+<!-- Create a div where the graph will take place -->
+<div id="my_dataviz";style="width:1200px; height:auto; float:right; display:inline"></div>
+<a href="BigMap.html"><button class='button button1'>主页</button></a>
+
+<script>
+
+// set the dimensions and margins of the graph
+
+var margin = {top: 10, right: 10, bottom: 10, left: 10},
+				width = 1200 - margin.left - margin.right,
+				height = 600 - margin.top - margin.bottom ;
+// append the svg object to the body of the page
+var svg = d3.select("#my_dataviz")
+  .append("svg")
+    .attr("width", width)
+    .attr("height", height)
+
+// create dummy data -> just one element per circle
+var data = [{"name":'GGV纪源资本', "group": 0,"num":443},{"name":'IDG资本', "group": 1,"num":1142 },{"name":'阿里巴巴', "group": 0,"num":374 },{"name":'百度', "group": 0,"num":174 },{"name":'高瓴VC', "group": 0,"num":136 },{"name":'高瓴资本', "group": 2,"num":350},{"name":'红杉资本', "group": 1,"num":1162 },{"name":'经纬中国', "group": 1,"num":969 },{"name":'启明创投', "group": 2 ,"num":502},{"name":'腾讯投资', "group": 3,"num":1091 },{"name":'真格基金', "group": 1,"num":960 },{"name":'字节跳动', "group": 0 ,"num":99}]
+
+// A scale that gives a X target position for each group
+var x = d3.scaleOrdinal()
+  .domain([0,1, 2, 3])
+  .range([0, 200, 500,700])
+
+// A color scale
+var color = d3.scaleOrdinal()
+				.range(d3.schemePaired);
+// var color = d3.scaleOrdinal()
+//   .domain([0,1, 2, 3])
+//   .range([ "#F8766D", "#00BA38", "#619CFF"])
+
+var tooltip_area = d3.select('#my_dataviz')
+        .append("div")
+          .style("opacity", 0)
+          .attr("class", "tooltip_area")
+          .style("background-color", "white")
+          .style("border-radius", "5px")
+          .style("padding", "10px")
+          .style("color", "black");
+// Initialize the circle: all located at the center of the svg area
+var node = svg.append("g")
+  .selectAll("circle")
+  .data(data)
+  .enter()
+  .append("circle")
+    .attr("r", function(d){ return d.num/20})
+    .attr("cx", width / 2)
+    .attr("cy", height / 2)
+    .style("fill", function(d){ return color(d.group)})
+    .style("fill-opacity", 0.8)
+    .attr("stroke", "black")
+    .style("stroke-width", 4)
+    .on('mouseover', function (d,i){
+			//Dim all blobs
+            console.log(d)
+            tooltip_area
+                .transition()
+                .duration(200);
+            tooltip_area
+                .style("opacity", 1)
+                .text("机构名: " + d.name+" 投资总数："+d.num)
+                .style('font-size','38px')
+                .style('font-weight','bold')
+                .style("left", (d3.mouse(this)[0]+30) + "px")
+                .style("top", (d3.mouse(this)[1]+30) + "px")
+			d3.selectAll("circle")
+				.transition().duration(200)
+				.style("fill-opacity", 0.1)
+        .style("stroke-width", 0.1); 
+			//Bring back the hovered over blob
+			d3.select(this)
+				.transition().duration(200)
+				.style("fill-opacity", 1)
+        .style("stroke-width", 4);	
+		})
+        .on("mousemove", function(){tooltip_area
+            .style("left", (d3.mouse(this)[0]+30) + "px")
+            .style("top", (d3.mouse(this)[1]+30) + "px");})
+		.on('mouseout', function(){
+			//Bring back all blobs
+            tooltip_area
+                .transition()
+                .duration(200)
+                .style("opacity", 0)
+			d3.selectAll("circle")
+				.transition().duration(200)
+				.style("fill-opacity", 1)
+        .style("stroke-width", 4);
+		})
+    .call(d3.drag() // call specific function when circle is dragged
+         .on("start", dragstarted)
+         .on("drag", dragged)
+         .on("end", dragended));
+
+// Features of the forces applied to the nodes:
+var simulation = d3.forceSimulation()
+    .force("x", d3.forceX().strength(0.5).x( function(d){ return x(d.group) } ))
+    .force("y", d3.forceY().strength(0.1).y( height/2 ))
+    .force("center", d3.forceCenter().x(width / 2).y(height / 2)) // Attraction to the center of the svg area
+    .force("charge", d3.forceManyBody().strength(1)) // Nodes are attracted one each other of value is > 0
+    .force("collide", d3.forceCollide().strength(.1).radius(32).iterations(1)) // Force that avoids circle overlapping
+
+// Apply these forces to the nodes and update their positions.
+// Once the force algorithm is happy with positions ('alpha' value is low enough), simulations will stop.
+simulation
+    .nodes(data)
+    .on("tick", function(d){
+      node
+          .attr("cx", function(d){ return d.x; })
+          .attr("cy", function(d){ return d.y; })
+    });
+
+// What happens when a circle is dragged?
+function dragstarted(d) {
+  if (!d3.event.active) simulation.alphaTarget(.03).restart();
+  d.fx = d.x;
+  d.fy = d.y;
+}
+function dragged(d) {
+  d.fx = d3.event.x;
+  d.fy = d3.event.y;
+}
+function dragended(d) {
+  if (!d3.event.active) simulation.alphaTarget(.03);
+  d.fx = null;
+  d.fy = null;
+}
+
+</script>
+</body>
+</html>

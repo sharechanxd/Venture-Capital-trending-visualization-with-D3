@@ -1,0 +1,1 @@
+[{"name":'GGV纪源资本', "group": 0 },{"name":'IDG资本', "group": 1 },{"name":'阿里巴巴', "group": 0 },{"name":'百度', "group": 0 },{"name":'高瓴VC', "group": 0 },{"name":'高瓴资本', "group": 2 },{"name":'红杉资本', "group": 1 },{"name":'经纬中国', "group": 1 },{"name":'启明创投', "group": 2 },{"name":'腾讯投资', "group": 3 },{"name":'真格基金', "group": 1 },{"name":'字节跳动', "group": 0 }]

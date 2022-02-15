@@ -1,0 +1,217 @@
+<!-- Code from d3-graph-gallery.com -->
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+  .button {
+    background-color: white;
+    color:black;
+    width:200px; 
+    border: 2px solid #1F618D; 
+    height: 100;
+    font-size: 20px;
+    padding: 14px 30px;
+    border-radius: 8px;
+    float: left;
+      }
+  
+  .button1 {
+    background-color: white;
+    color:black;
+    width:200px; 
+    border: 2px solid #1F618D; 
+    height: 100;
+    font-size: 20px;
+    padding: 14px 30px;
+    border-radius: 8px;
+    float: left;
+    transition-duration: 0.7s;
+  }
+  .button1:hover {
+    background-color: black;
+    color: white;
+    width:200px; 
+    border: 2px solid #1F618D; 
+    height: 100;
+    font-size: 20px;
+    padding: 14px 30px;
+    border-radius: 8px;
+    float: left;
+  }
+  </style>
+<!-- Load d3.js & color scale-->
+<script src="https://d3js.org/d3.v4.js"></script>
+<script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
+
+<!-- Create a div where the graph will take place -->
+<div id="my_dataviz"></div>
+<!-- <a href="L3_solution.html"><button style="color:black;width:200px; border: 2px solid #1F618D; height:100;font-size: 20px;padding: 14px 30px;border-radius: 8px;float: left;">投资产业概览</button></a> -->
+<a href="year_investor.html"><button class='button button1'>参与融资数量概览</button></a>
+<a href="detail_industry_wc.html"><button class='button button1'>细分行业融资分布</button></a>
+<script>
+
+// set the dimensions and margins of the graph
+var margin = {top: 20, right: 30, bottom: 0, left: 10},
+    width = 1800 - margin.left - margin.right,
+    height = 900 - margin.top - margin.bottom;
+
+// append the svg object to the body of the page
+var svg = d3.select("#my_dataviz")
+  .append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform",
+          "translate(" + margin.left + "," + margin.top + ")");
+
+// Parse the Data
+d3.csv("https://picbed-mainland.oss-cn-beijing.aliyuncs.com/year_industry.csv", function(data) {
+
+  // List of groups = header of the csv files
+  var keys = data.columns.slice(1)
+  // console.log(data)
+  // console.log(keys)
+  function Dictionary(){
+                    this.datastore = new Object();
+  }
+  Dictionary.prototype = {
+      constructor: Dictionary,
+      size: function(){
+          return Object.keys(this.datastore).length;
+      },
+      add: function(key, value){
+          this.datastore[key] = value;
+      },
+      find: function(key){
+          return this.datastore[key];
+      },
+      remove: function(key){
+          delete this.datastore[key];
+      },
+      showAll: function(){
+          for(var key in this.datastore){
+              console.log(key + ": " + this.find(key));
+          }
+      }
+  };
+
+  let name_total_num = new Dictionary();
+  for (let j = 0; j < keys.length; j++){
+    t = d3.sum(data,function(d){return d[keys[j]]})
+    name_total_num.add(keys[j],t);
+  };
+  console.log(name_total_num)
+  // Add X axis
+  var x = d3.scaleLinear()
+    .domain(d3.extent(data, function(d) { return d.year; }))
+    .range([ 0, width ]);
+  svg.append("g")
+    .attr("transform", "translate(0," + height*0.95 + ")")
+    .call(d3.axisBottom(x).tickSize(-height*.9).tickValues(['1998','1999',2000,2001,2002,2003,2004,2005,2006,2007, 2008,2009,2010,2011,2012,2013,2014, 2015,2016,2017,2018,2019,2020,2021]))
+    .select(".domain").remove()
+  // Customization
+  svg.selectAll(".tick line").attr("stroke", "#b8b8b8").style("stroke-width", 2)
+
+  // var tool = d3.select("#my_dataviz").append("div")
+  //   .style("position", "absolute")
+  //   .style("visibility", "hidden")
+  //   .text("fuck you");
+
+  // d3.selectAll(".tick").data(data).enter().append('div')
+  //   .on("mouseover", function(){return tool.style("visibility", "visible");})
+  //   .on("mousemove", function(){return tool.style("top", (event.pageY-800)+"px").style("left",(event.pageX-800)+"px");})
+  //   .on("mouseout", function(){return tool.style("visibility", "hidden");});
+
+
+  
+  
+
+
+  // Add X axis label:
+  svg.append("text")
+      .attr("text-anchor", "end")
+      .attr("x", width)
+      .attr("y", height-10 )
+      .text("Time (year)");
+  svg.append("text")
+      .attr("text-anchor", "end")
+      .attr("x", width)
+      .attr("y", 10 )
+      .text("数量幅度");
+  // Add Y axis
+  var y = d3.scaleLinear()
+    .domain([-600, 600])
+    .range([ height, 0 ]);
+
+  // color palette
+  var color = d3.scaleOrdinal()
+    .domain(keys)
+    .range(d3.schemePaired);
+
+  //stack the data?
+  var stackedData = d3.stack()
+    .offset(d3.stackOffsetSilhouette)
+    .keys(keys)
+    (data)
+
+  // create a tooltip
+  var Tooltip = svg
+    .append("text")
+    .attr("x", 10)
+    .attr("y", 10)
+    .style("opacity", 1)
+    .style("font-size", 25)
+    .text('1998-2021年机构主要布局行业概览')
+
+  // Three function that change the tooltip when user hover / move / leave a cell
+  // console.log(stackedData)
+  var mouseover = function(d) {
+    Tooltip.style("opacity", 1)
+    d3.selectAll(".myArea").style("opacity", .2)
+    d3.select(this)
+      .style("stroke", "black")
+      .style("opacity", 1)
+  }
+  var mousemove = function(d,i) {
+    // console.log(d)
+    // console.log(i)
+    grp = keys[i]
+    // console.log(grp)
+    // console.log(name_total_num)
+    Tooltip.text(grp + ': 总融资事件数量' + name_total_num.find(grp))
+  }
+  var mouseout = function(d) {
+    // Tooltip.style("opacity", 0)
+    Tooltip.text('1998-2021年机构主要布局行业概览')
+    d3.selectAll(".myArea").style("opacity", 1).style("stroke", "none")
+   }
+
+  // Area generator
+  var area = d3.area()
+    .x(function(d) { return x(d.data.year); })
+    .y0(function(d) { return y(d[0]); })
+    .y1(function(d) { return y(d[1]); })
+  
+  
+  function jump(event, d) {
+    if (event.defaultPrevented) return; // dragged
+    grp = keys[d]
+    // console.log(d)
+    window.location.href=`${grp}.html`;
+  }
+  // Show the areas
+  area = svg
+    .selectAll("mylayers")
+    .data(stackedData)
+    .enter()
+    .append("path")
+      .attr("class", "myArea")
+      .style("fill", function(d) { return color(d.key); })
+      .attr("d", area)
+      .on("mouseover", mouseover)
+      .on("mousemove", mousemove)
+      .on("mouseout", mouseout)
+      .on('click',jump)
+
+})
+</script>
